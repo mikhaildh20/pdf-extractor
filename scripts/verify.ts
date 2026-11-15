@@ -27,10 +27,10 @@ async function main() {
     const expected = JSON.parse(await readFile(`samples/expected/${filename.replace(/\.pdf$/i, ".expected.json")}`, "utf8"));
     const result = await extractDocument({ id: filename, filename, sizeBytes: data.length, sha256: createHash("sha256").update(data).digest("hex"), source: "sample" }, data);
     const prefix = filename.slice(0, 2);
-    const expectedStatus = prefix === "03" ? "NEED_REVIEW" : prefix === "05" ? "NEEDS_OCR" : "AUTO_VALID";
-    const differences = prefix === "05" && result.status === "NEEDS_OCR" ? [] : mismatches(expected, result.extraction.fields);
+    const expectedStatus = prefix === "03" || prefix === "05" ? "NEED_REVIEW" : "AUTO_VALID";
+    const differences = mismatches(expected, result.extraction.fields);
     const reconciliation = result.validation.business.find((rule) => rule.rule === "SALDO_RECONCILIATION");
-    const scanOk = prefix !== "05" || (result.detection.isScan && result.detection.textChars === 0 && Object.keys(result.extraction.fields).length === 0);
+    const scanOk = prefix !== "05" || (result.detection.isScan && result.detection.textChars === 0 && result.extraction.method === "ocr" && result.warnings.some((warning) => warning.includes("OCR")));
     const balanceOk = prefix !== "03" || (reconciliation?.ok === false && reconciliation.expected === 11485000 && reconciliation.actual === 11585000);
     const pass = result.status === expectedStatus && differences.length === 0 && scanOk && balanceOk;
     failed ||= !pass;

@@ -114,7 +114,8 @@ export default function Page() {
         </div>
         {!result ? <p className="mt-10 rounded-lg border border-slate-200 bg-white p-6 text-slate-500">Run extraction to inspect the text, JSON, and validation results.</p> : <>
           <div className={`mt-8 rounded-lg border p-4 ${result.status === "AUTO_VALID" ? "border-green-300 bg-green-50" : result.status === "NEED_REVIEW" ? "border-amber-300 bg-amber-50" : "border-red-300 bg-red-50"}`}>
-            <strong>{result.status}</strong><p className="mt-1 text-sm">{result.status === "AUTO_VALID" ? "Schema and business rules passed." : result.status === "NEEDS_OCR" ? "The PDF has too little text. OCR is not available in Phase 1." : result.status === "UNKNOWN_TYPE" ? "The document type could not be determined." : result.status === "FAILED" ? "The PDF could not be read or extracted. It may be invalid or encrypted." : "Review the validation errors and warnings before using these values."}</p>
+            <strong>{result.status}</strong><p className="mt-1 text-sm">{result.status === "AUTO_VALID" ? "Schema and business rules passed." : result.status === "NEEDS_OCR" ? "No text could be recognized from this scan." : result.status === "UNKNOWN_TYPE" ? "The document type could not be determined." : result.status === "FAILED" ? "The PDF could not be processed. It may be invalid, encrypted, or OCR resources may be unavailable." : "Review the validation errors and warnings before using these values."}</p>
+            {result.extraction.method === "ocr" && <p className="mt-1 text-sm font-semibold">OCR was used. Review every value against the original PDF.</p>}
             {result.validation.business.filter((rule) => !rule.ok).map((rule) => <p className="text-sm" key={rule.rule}>Failed: {rule.rule}</p>)}
           </div>
           <div className="mt-6 rounded-lg border border-slate-200 bg-white">
@@ -122,7 +123,7 @@ export default function Page() {
               {(["Text", "JSON", "Technical", "PDF"] as Tab[]).map((item) => <button key={item} role="tab" aria-selected={tab === item} className={`px-5 py-3 text-sm ${tab === item ? "border-b-2 border-teal-700 font-semibold text-teal-700" : "text-slate-500"}`} onClick={() => setTab(item)}>{item}</button>)}
             </div>
             <div className="overflow-auto p-5" role="tabpanel">
-              {tab === "Text" && <><div className="mb-3 flex justify-between gap-4 text-sm"><span>{result.detection.textChars} chars · {result.rawText.split("\n").filter((line) => !line.startsWith("--- page") && line.length > 0).length} lines</span><button className={button} onClick={() => void copy(result.rawText)}>Copy text</button></div><pre className="whitespace-pre-wrap break-words font-mono text-sm">{result.rawText}</pre></>}
+              {tab === "Text" && <><div className="mb-3 flex justify-between gap-4 text-sm"><span>{result.detection.textChars} text-layer chars · {result.rawText.split("\n").filter((line) => !line.startsWith("--- page") && line.length > 0).length} lines</span><button className={button} onClick={() => void copy(result.rawText)}>Copy text</button></div><pre className="whitespace-pre-wrap break-words font-mono text-sm">{result.rawText}</pre></>}
               {tab === "JSON" && <><div className="mb-3 flex gap-2"><button className={button} onClick={() => void copy(JSON.stringify(result.extraction.fields, null, 2))}>Copy JSON</button><button className={button} onClick={download}>Download JSON</button></div><HighlightedJson value={result.extraction.fields} /></>}
               {tab === "Technical" && <div className="space-y-5 text-sm">
                 <section><h3 className="font-semibold">Detection</h3><pre className="mt-2 whitespace-pre-wrap">{JSON.stringify(result.detection, null, 2)}</pre></section>

@@ -1,5 +1,6 @@
 import { detectDocType, type DocType } from "../detect/detectDocType";
 import { readPdf } from "../pdf/readPdf";
+import { readOcr } from "../pdf/readOcr";
 import { detectScan } from "../pdf/detectScan";
 import { schemas } from "../schemas";
 import { businessRules } from "../validate/businessRules";
@@ -17,7 +18,7 @@ export function failedExtraction(document: DocumentRecord, durationMs: number) {
     extraction: { method: "rule-based" as const, durationMs, fields: {} as Record<string, unknown>, fieldTrace: [] as import("./types").FieldTrace[] },
     validation: { schema: { ok: false, errors: ["Extraction failed; validation was not performed."] }, business: [] as ReturnType<typeof businessRules> },
     status: "FAILED",
-    warnings: ["Could not read or extract the PDF. It may be invalid or encrypted."],
+    warnings: ["Could not process the PDF. It may be invalid or encrypted, or OCR resources may be unavailable."],
     rawText: "",
   };
 }
@@ -27,23 +28,25 @@ export async function extractDocument(document: DocumentRecord, data: Uint8Array
   try {
   const pdf = await readPdf(data);
   const scan = detectScan(pdf.textChars);
-  const detected = detectDocType(pdf.rawText);
+  const ocr = scan.isScan ? await readOcr(data) : null;
+  const content = ocr ?? pdf;
+  const detected = detectDocType(content.rawText);
   const docType = override ?? detected.docType;
   const base = {
     document: { id: document.id, filename: document.filename, sizeBytes: document.sizeBytes, sha256: document.sha256, pages: pdf.pages, source: document.source },
     detection: { ...scan, ...detected, docType },
-    extraction: { method: "rule-based" as const, durationMs: 0, fields: {} as Record<string, unknown>, fieldTrace: [] as import("./types").FieldTrace[] },
+    extraction: { method: (ocr ? "ocr" : "rule-based") as "ocr" | "rule-based", durationMs: 0, fields: {} as Record<string, unknown>, fieldTrace: [] as import("./types").FieldTrace[] },
     validation: { schema: { ok: false, errors: [] as string[] }, business: [] as ReturnType<typeof businessRules> },
     status: "NEEDS_OCR",
-    warnings: [] as string[],
-    rawText: pdf.rawText,
+    warnings: ocr ? ["Text was recognized using OCR; all extracted values must be reviewed against the original PDF."] : [] as string[],
+    rawText: content.rawText,
   };
-  if (!scan.isScan && !docType) base.status = "UNKNOWN_TYPE";
-  if (!scan.isScan && docType) {
-    const result = ruleBasedExtract(docType, pdf.lines);
+  if ((!scan.isScan || content.lines.length > 0) && !docType) base.status = "UNKNOWN_TYPE";
+  if (docType && (!scan.isScan || content.lines.length > 0)) {
+    const result = ruleBasedExtract(docType, content.lines);
     base.extraction.fields = result.fields;
     base.extraction.fieldTrace = result.fieldTrace;
-    base.warnings = result.warnings;
+    base.warnings.push(...result.warnings);
     const schema = schemas[docType].safeParse(result.fields);
     base.validation.schema = schema.success
       ? { ok: true, errors: [] }

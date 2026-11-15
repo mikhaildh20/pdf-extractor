@@ -30,4 +30,14 @@ describe("financial extraction", () => {
     expect(result.validation.schema.ok).toBe(false);
     expect(result.warnings.length).toBeGreaterThan(0);
   });
+  it("extracts the scanned receipt while requiring human review", async () => {
+    const filename = "05_bukti_setoran_SCAN.pdf";
+    const data = await readFile(`samples/${filename}`);
+    const result = await extractDocument({ id: "scan", filename, sizeBytes: data.length, sha256: "", source: "sample" }, data);
+    expect(result.detection).toMatchObject({ isScan: true, textChars: 0 });
+    expect(result.extraction.method).toBe("ocr");
+    expect(result.extraction.fields).toMatchObject({ no_referensi: "TRX-20261107-000902", nominal: 250000 });
+    expect(result.status).toBe("NEED_REVIEW");
+    expect(result.warnings.join(" ")).toMatch(/OCR/);
+  }, 120000);
 });
