@@ -1,0 +1,26 @@
+{
+  "nik": "2020-00457",
+  "nama": "SITI RAHMAWATI",
+  "departemen": "Produksi",
+  "periode_gaji": "2026-10",
+  "no_anggota": "AGT-0000567",
+  "potongan": [
+    {
+      "komponen": "Simpanan Pokok",
+      "jumlah": 100000
+    },
+    {
+      "komponen": "Simpanan Wajib",
+      "jumlah": 250000
+    },
+    {
+      "komponen": "Angsuran Pinjaman PNJ-2026-0045 (ke-4 dari 12)",
+      "jumlah": 875000
+    },
+    {
+      "komponen": "Iuran Dana Sosial",
+      "jumlah": 20000
+    }
+  ],
+  "total_potongan": 1245000
+}

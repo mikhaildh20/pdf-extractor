@@ -1,0 +1,49 @@
+{
+  "no_anggota": "AGT-0001234",
+  "nama_anggota": "BUDI SANTOSO",
+  "periode_awal": "2026-11-01",
+  "periode_akhir": "2026-11-30",
+  "saldo_awal": 10000000,
+  "mutasi": [
+    {
+      "tanggal": "2026-11-02",
+      "no_ref": "SET-0001",
+      "keterangan": "Setoran Simpanan Wajib",
+      "debit": 0,
+      "kredit": 250000
+    },
+    {
+      "tanggal": "2026-11-05",
+      "no_ref": "SET-0002",
+      "keterangan": "Setoran Simpanan Sukarela",
+      "debit": 0,
+      "kredit": 1500000
+    },
+    {
+      "tanggal": "2026-11-09",
+      "no_ref": "TAR-0001",
+      "keterangan": "Penarikan Simpanan Sukarela",
+      "debit": 500000,
+      "kredit": 0
+    },
+    {
+      "tanggal": "2026-11-12",
+      "no_ref": "SET-0003",
+      "keterangan": "Setoran Simpanan Wajib",
+      "debit": 0,
+      "kredit": 250000
+    },
+    {
+      "tanggal": "2026-11-14",
+      "no_ref": "ADM-0001",
+      "keterangan": "Biaya Administrasi",
+      "debit": 15000,
+      "kredit": 0
+    }
+  ],
+  "total_debit": 515000,
+  "total_kredit": 2000000,
+  "saldo_akhir_tertulis": 11585000,
+  "saldo_akhir_seharusnya": 11485000,
+  "catatan_validasi": "SALDO TIDAK COCOK (selisih 100.000), harus lolos ke NEED_REVIEW"
+}
